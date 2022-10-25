@@ -123,7 +123,7 @@ const CHUNK_7: [u32; 16] = [
 #[kernel]
 #[allow(improper_ctypes_definitions, clippy::missing_safety_doc)]
 pub unsafe fn finish_hash(rand_tokens: &[u8], chunk_6: &[u32; 12], hash_vars: &[u32; 8], hashes: *mut u32) {
-    let hash_index = thread::index_1d() as usize;
+    let idx = thread::index_1d() as usize;
     let mut schedule: Schedule = [0 as u32; 64];
     let mut hash: [u32; 8] = [0 as u32; 8];
 
@@ -131,7 +131,7 @@ pub unsafe fn finish_hash(rand_tokens: &[u8], chunk_6: &[u32; 12], hash_vars: &[
     hash[0..8].copy_from_slice(hash_vars);
 
     // Guess random number
-    let t = hash_index * 16;
+    let t = idx * 16;
     schedule[12] = ((rand_tokens[t] as u32) << 24) | ((rand_tokens[t + 1] as u32) << 16) | ((rand_tokens[t + 2] as u32) << 8) | (rand_tokens[t + 3] as u32);
     schedule[13] = ((rand_tokens[t + 4] as u32) << 24) | ((rand_tokens[t + 5] as u32) << 16) | ((rand_tokens[t + 6] as u32) << 8) | (rand_tokens[t + 7] as u32);
     schedule[14] = ((rand_tokens[t + 8] as u32) << 24) | ((rand_tokens[t + 9] as u32) << 16) | ((rand_tokens[t + 10] as u32) << 8) | (rand_tokens[t + 11] as u32);
@@ -225,6 +225,8 @@ pub unsafe fn finish_hash(rand_tokens: &[u8], chunk_6: &[u32; 12], hash_vars: &[
         b = a;
         a = temp1.wrapping_add(temp2);
     }
+
+    let hash_index = idx * 8;
 
     *hashes.add(hash_index) = hash[0].wrapping_add(a);
     *hashes.add(hash_index + 1) = hash[1].wrapping_add(b);
